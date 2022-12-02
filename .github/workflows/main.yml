@@ -26,9 +26,9 @@ jobs:
       uses: actions/setup-node@v3.5.1
 
     # openapi generate
+    # npx @openapitools/openapi-generator-cli generate -i main.yaml -g typescript-fetch -o /dist/ts-client
     - run: |
         npm install @openapitools/openapi-generator-cli -g
-        npx @openapitools/openapi-generator-cli generate -i main.yaml -g typescript-fetch -o /dist/ts-client
         npx @openapitools/openapi-generator-cli generate -i main.yaml -g swift5 -o /dist/swift-client
         npx @openapitools/openapi-generator-cli generate -i main.yaml -g rust-server -o /dist/server
 
