@@ -1,0 +1,644 @@
+openapi: 3.1.0
+x-stoplight:
+  id: h57ut1i2gjak8
+info:
+  title: main
+  version: '1.0'
+servers:
+  - url: 'https://stoplight.io/mocks/college-app/college-app/406762'
+    description: Mock Server
+paths:
+  /login:
+    post:
+      summary: Login
+      operationId: post-login
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+                    description: |
+                      初期登録フォーム未回答の場合のみ
+                required:
+                  - accessToken
+        '401':
+          description: 無効なfirebaseIdToken
+        '403':
+          description: Disabledになっている、つまりBANされているアカウント
+        '404':
+          description: |-
+            Airtable上にデータが存在しません
+
+            先にAirtableでEmailだけでも登録してください
+      parameters: []
+      description: |
+        ## 概要
+        accessTokenを取得するためのエンドポイント。
+
+        初期登録フォーム未回答の場合、User情報を取得する。
+
+        ## レスポンスによるクライアント側の分岐
+
+        - 200
+          - レスポンスにuserがある
+            - 初期登録フォームに遷移、default値にuserを使用
+          - レスポンスにuserがない
+            - Homeに遷移
+        - 401
+          - 「このエラーが出たら運営に報告してね」エラーページに遷移
+        - 403
+          - 「このアカウントは無効化されてるよ」エラーページに遷移
+        - 404
+          - 「まだ運営側でデータ登録が完了していないよ」エラーページに遷移
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firebaseIdToken:
+                  type: string
+                  description: |
+                    取得方法は[こちら](https://firebase.google.com/docs/auth/admin/verify-id-tokens#retrieve_id_tokens_on_clients)
+              required:
+                - firebaseIdToken
+  /users:
+    put:
+      summary: Update User
+      operationId: put-users
+      responses:
+        '200':
+          description: OK
+      description: Airtable上のUser情報をアップデートする
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                i18n:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/UserI18n'
+                imageUrl:
+                  type: string
+                  format: uri
+                pronoun:
+                  type: string
+                  enum:
+                    - SHE_HER
+                    - HE_HIM
+                    - THEY_THEM
+                birthday:
+                  type: string
+                  format: date
+                hideAge:
+                  type: boolean
+                  default: false
+                socialLinks:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      brandId:
+                        type: string
+                        description: Airtable's Social Brand Record ID
+                      username:
+                        type: string
+                    required:
+                      - brandId
+                      - username
+                roomNumber:
+                  type: number
+                  minimum: 100
+                  maximum: 599
+                postNumber:
+                  type: number
+                  minimum: 100
+                  maximum: 599
+                selfIntroductionSlideUrl:
+                  type: string
+                  format: uri
+                programs:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      generationId:
+                        type: string
+                        description: Airtable's Generation Record ID
+                    required:
+                      - generationId
+                houses:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      generationId:
+                        type: string
+                        description: Airtable's Generation Record ID
+                    required:
+                      - generationId
+                committees:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      groupId:
+                        type: string
+                        description: Airtable's Group Record ID
+                      from:
+                        type: string
+                        format: date
+                      to:
+                        type: string
+                        format: date
+                    required:
+                      - groupId
+                clubs:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      groupId:
+                        type: string
+                        description: Airtable's Group Record ID
+                      from:
+                        type: string
+                        format: date
+                      to:
+                        type: string
+                        format: date
+                    required:
+                      - groupId
+                position:
+                  type: string
+                  description: 肩書き
+                bio:
+                  type: string
+                  description: Markdown
+                photoUrls:
+                  type: array
+                  items:
+                    type: string
+                    format: uri
+      parameters: []
+      x-internal: false
+      security:
+        - accessToken: []
+    get:
+      summary: Get Users
+      operationId: get-users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+      description: 全てのユーザーを取得する
+      security:
+        - accessToken: []
+  /users/search:
+    get:
+      summary: Search Users (WIP)
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+      operationId: get-users-search
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: query
+          description: 検索ワード
+          required: true
+      security:
+        - accessToken: []
+      description: |-
+        ## TODO
+
+        - [ ] フィルタリング
+        - [ ] ページネーション
+  '/users/{recordId}':
+    parameters:
+      - schema:
+          type: string
+        name: recordId
+        in: path
+        required: true
+    get:
+      summary: Get User
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      operationId: get-users-recordId
+      security:
+        - accessToken: []
+      description: 指定のuserを取得
+  /generations:
+    get:
+      summary: Get Generations
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Generation'
+      operationId: get-generations
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - program
+              - house
+          in: query
+          name: type
+          required: true
+      security:
+        - accessToken: []
+      description: 指定したtypeの`Generation`を全て取得する
+  '/generations/{recordId}':
+    parameters:
+      - schema:
+          type: string
+        name: recordId
+        in: path
+        required: true
+    get:
+      summary: Get Generation
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Generation'
+      operationId: get-generations-recordId
+      security:
+        - accessToken: []
+      description: 指定のgenerationを取得
+  /groups:
+    get:
+      summary: Get Groups
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+      operationId: get-groups
+      security:
+        - accessToken: []
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - committee
+              - club
+          in: query
+          name: type
+      description: 指定したtypeの`Group`を全て取得する
+  '/groups/{recordId}':
+    parameters:
+      - schema:
+          type: string
+        name: recordId
+        in: path
+        required: true
+    get:
+      summary: Get Group
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+      operationId: get-groups-recordId
+      security:
+        - accessToken: []
+      description: 指定のGroupを取得
+components:
+  schemas:
+    User:
+      title: User
+      x-stoplight:
+        id: 80vqy0i3q5qhd
+      type: object
+      properties:
+        id:
+          type: string
+          description: Airtable's Record ID
+        email:
+          type: string
+          example: hoge@hlab.college
+          format: email
+        role:
+          type: string
+          enum:
+            - resident
+            - alumni
+            - staff
+        i18n:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserI18n'
+        imageUrl:
+          type: string
+          format: uri
+        pronoun:
+          type: string
+          enum:
+            - SHE_HER
+            - HE_HIM
+            - THEY_THEM
+        birthday:
+          type: string
+          format: date
+        hideAge:
+          type: boolean
+          default: false
+        socialLinks:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserSocialLink'
+        roomNumber:
+          type: number
+          minimum: 100
+          maximum: 599
+        postNumber:
+          type: number
+          minimum: 100
+          maximum: 599
+        selfIntroductionSlideUrl:
+          type: string
+          format: uri
+        programs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Generation'
+        houses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Generation'
+        committees:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGroupBelonging'
+        clubs:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGroupBelonging'
+        position:
+          type: string
+          description: 肩書き
+        bio:
+          type: string
+          description: Markdown
+        photoUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+        lastModifiedAt:
+          type: string
+          format: date
+      required:
+        - id
+        - email
+        - role
+        - i18n
+    UserI18n:
+      title: UserI18n
+      x-stoplight:
+        id: 871f6591b945e
+      type: object
+      examples:
+        - locale: ja
+          firstName: 太郎
+          lastName: 慶應
+          phoneticFirstName: タロウ
+          phoneticLastName: ケイオウ
+          nickName: けいたろう
+        - locale: en
+          firstName: Taro
+          lastName: Keio
+          nickName: Keitaro
+      properties:
+        locale:
+          enum:
+            - ja
+            - en
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phoneticFirstName:
+          type: string
+        phoneticLastName:
+          type: string
+        nickName:
+          type: string
+        middleName:
+          type: string
+        phoneticMiddleName:
+          type: string
+        maidenName:
+          type: string
+        prefix:
+          type: string
+        suffix:
+          type: string
+      required:
+        - locale
+        - firstName
+        - lastName
+    UserGroupBelonging:
+      title: UserGroupBelonging
+      x-stoplight:
+        id: mbwu85j19fka0
+      type: object
+      properties:
+        group:
+          $ref: '#/components/schemas/Group'
+        displayName:
+          type: string
+          example: カレッジライフ分科会 (22.04~)
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+      required:
+        - group
+        - displayName
+    UserSocialLink:
+      title: UserSocialLink
+      x-stoplight:
+        id: 0f1pz4ffn9owr
+      type: object
+      properties:
+        brand:
+          $ref: '#/components/schemas/SocialBrand'
+        username:
+          type: string
+          example: chiji1108
+      required:
+        - brand
+        - username
+    SocialBrand:
+      title: SocialBrand
+      x-stoplight:
+        id: x5aug333lhdcu
+      type: object
+      properties:
+        id:
+          type: string
+          description: Airtable's Record ID
+        name:
+          type: string
+          example: twitter
+        svgIconUrl:
+          type: string
+          format: uri
+        urlPrefix:
+          type: string
+          format: uri
+          example: 'https://twitter.com/'
+        formPrefix:
+          type: string
+          example: '@'
+      required:
+        - id
+        - name
+    Group:
+      title: Group
+      x-stoplight:
+        id: i4tun9gkx8vpc
+      type: object
+      description: '`Committee`, `Club`'
+      properties:
+        id:
+          type: string
+          description: Airtable's Record ID
+        type:
+          type: string
+          enum:
+            - committee
+            - club
+            - project
+        displayName:
+          type: string
+          default: カレッジライフ分科会
+        createdAt:
+          type: string
+          format: date
+        archivedAt:
+          type: string
+          format: date
+        emoji:
+          type: string
+          example: "\U0001F4DA"
+        title:
+          type: string
+          example: カレッジライフ分科会
+        description:
+          type: string
+          description: Markdown
+        slackChannel:
+          type: string
+          example: '#310_coco_collegelife'
+        photoUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+      required:
+        - id
+        - type
+        - displayName
+    Generation:
+      title: Generation
+      x-stoplight:
+        id: rd01g8hw4cdca
+      type: object
+      description: '`Program`, `House/Home`'
+      properties:
+        id:
+          type: string
+          description: Airtable's Record ID
+        type:
+          type: string
+          enum:
+            - program
+            - house
+        displayName:
+          type: string
+          example: RP2期生
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        coverImageUrl:
+          type: string
+          format: uri
+        title:
+          type: string
+          example: Residential Program 2期生
+        description:
+          type: string
+          description: Markdown
+        photoUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+      required:
+        - id
+        - type
+        - displayName
+  securitySchemes:
+    accessToken:
+      type: http
+      scheme: bearer
+      description: |-
+        `Authrization: Bearer <accessToken>`
+
+        `accessToken`は`/login`で取得する。
+  requestBodies: {}
