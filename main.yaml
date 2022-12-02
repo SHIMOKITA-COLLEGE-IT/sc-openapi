@@ -2,7 +2,7 @@ openapi: 3.0.0
 x-stoplight:
   id: i5yczhey972ww
 info:
-  title: main
+  title: College App API
   contact: {}
   version: '1.0'
 servers:
