@@ -1,0 +1,620 @@
+openapi: 3.1.0
+info:
+  title: main
+  version: "1.0"
+servers:
+- description: Mock Server
+  url: https://stoplight.io/mocks/college-app/college-app/406762
+paths:
+  /login:
+    post:
+      description: |
+        ## 概要
+        accessTokenを取得するためのエンドポイント。
+
+        初期登録フォーム未回答の場合、User情報を取得する。
+
+        ## レスポンスによるクライアント側の分岐
+
+        - 200
+          - レスポンスにuserがある
+            - 初期登録フォームに遷移、default値にuserを使用
+          - レスポンスにuserがない
+            - Homeに遷移
+        - 401
+          - 「このエラーが出たら運営に報告してね」エラーページに遷移
+        - 403
+          - 「このアカウントは無効化されてるよ」エラーページに遷移
+        - 404
+          - 「まだ運営側でデータ登録が完了していないよ」エラーページに遷移
+      operationId: post-login
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/post_login_request'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/post_login_200_response'
+          description: OK
+        "401":
+          description: 無効なfirebaseIdToken
+        "403":
+          description: Disabledになっている、つまりBANされているアカウント
+        "404":
+          description: |-
+            Airtable上にデータが存在しません
+
+            先にAirtableでEmailだけでも登録してください
+      summary: Login
+  /users:
+    get:
+      description: 全てのユーザーを取得する
+      operationId: get-users
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/User'
+          description: OK
+      security:
+      - accessToken: []
+      summary: Get Users
+    put:
+      description: Airtable上のUser情報をアップデートする
+      operationId: put-users
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/put_users_request'
+      responses:
+        "200":
+          description: OK
+      security:
+      - accessToken: []
+      summary: Update User
+      x-internal: false
+  /users/search:
+    get:
+      description: |-
+        ## TODO
+
+        - [ ] フィルタリング
+        - [ ] ページネーション
+      operationId: get-users-search
+      parameters:
+      - description: 検索ワード
+        explode: true
+        in: query
+        name: query
+        required: true
+        schema: {}
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/User'
+          description: OK
+      security:
+      - accessToken: []
+      summary: Search Users (WIP)
+      tags: []
+  /users/{recordId}:
+    get:
+      description: 指定のuserを取得
+      operationId: get-users-recordId
+      parameters:
+      - explode: false
+        in: path
+        name: recordId
+        required: true
+        schema: {}
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: OK
+      security:
+      - accessToken: []
+      summary: Get User
+      tags: []
+    parameters:
+    - explode: false
+      in: path
+      name: recordId
+      required: true
+      schema: {}
+      style: simple
+  /generations:
+    get:
+      description: 指定したtypeの`Generation`を全て取得する
+      operationId: get-generations
+      parameters:
+      - explode: true
+        in: query
+        name: type
+        required: true
+        schema:
+          enum:
+          - program
+          - house
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Generation'
+          description: OK
+      security:
+      - accessToken: []
+      summary: Get Generations
+      tags: []
+  /generations/{recordId}:
+    get:
+      description: 指定のgenerationを取得
+      operationId: get-generations-recordId
+      parameters:
+      - explode: false
+        in: path
+        name: recordId
+        required: true
+        schema: {}
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Generation'
+          description: OK
+      security:
+      - accessToken: []
+      summary: Get Generation
+      tags: []
+    parameters:
+    - explode: false
+      in: path
+      name: recordId
+      required: true
+      schema: {}
+      style: simple
+  /groups:
+    get:
+      description: 指定したtypeの`Group`を全て取得する
+      operationId: get-groups
+      parameters:
+      - explode: true
+        in: query
+        name: type
+        required: false
+        schema:
+          enum:
+          - committee
+          - club
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Group'
+          description: OK
+      security:
+      - accessToken: []
+      summary: Get Groups
+      tags: []
+  /groups/{recordId}:
+    get:
+      description: 指定のGroupを取得
+      operationId: get-groups-recordId
+      parameters:
+      - explode: false
+        in: path
+        name: recordId
+        required: true
+        schema: {}
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+          description: OK
+      security:
+      - accessToken: []
+      summary: Get Group
+      tags: []
+    parameters:
+    - explode: false
+      in: path
+      name: recordId
+      required: true
+      schema: {}
+      style: simple
+components:
+  requestBodies: {}
+  schemas:
+    User:
+      example:
+        birthday: ""
+        selfIntroductionSlideUrl: ""
+        socialLinks: ""
+        role: ""
+        roomNumber: ""
+        photoUrls: ""
+        lastModifiedAt: ""
+        committees: ""
+        bio: ""
+        postNumber: ""
+        i18n: ""
+        pronoun: ""
+        imageUrl: ""
+        hideAge: ""
+        houses: ""
+        clubs: ""
+        id: ""
+        programs: ""
+        position: ""
+        email: hoge@hlab.college
+      properties:
+        id:
+          description: Airtable's Record ID
+        email:
+          example: hoge@hlab.college
+          format: email
+        role:
+          enum:
+          - resident
+          - alumni
+          - staff
+        i18n:
+          items:
+            $ref: '#/components/schemas/UserI18n'
+        imageUrl:
+          format: uri
+        pronoun:
+          enum:
+          - SHE_HER
+          - HE_HIM
+          - THEY_THEM
+        birthday:
+          format: date
+        hideAge:
+          default: false
+        socialLinks:
+          items:
+            $ref: '#/components/schemas/UserSocialLink'
+        roomNumber:
+          maximum: 599
+          minimum: 100
+        postNumber:
+          maximum: 599
+          minimum: 100
+        selfIntroductionSlideUrl:
+          format: uri
+        programs:
+          items:
+            $ref: '#/components/schemas/Generation'
+        houses:
+          items:
+            $ref: '#/components/schemas/Generation'
+        committees:
+          items:
+            $ref: '#/components/schemas/UserGroupBelonging'
+        clubs:
+          items:
+            $ref: '#/components/schemas/UserGroupBelonging'
+        position:
+          description: 肩書き
+        bio:
+          description: Markdown
+        photoUrls:
+          items:
+            format: uri
+        lastModifiedAt:
+          format: date
+      required:
+      - email
+      - i18n
+      - id
+      - role
+      title: User
+      x-stoplight:
+        id: 80vqy0i3q5qhd
+    UserI18n:
+      properties:
+        locale:
+          enum:
+          - ja
+          - en
+        firstName: {}
+        lastName: {}
+        phoneticFirstName: {}
+        phoneticLastName: {}
+        nickName: {}
+        middleName: {}
+        phoneticMiddleName: {}
+        maidenName: {}
+        prefix: {}
+        suffix: {}
+      required:
+      - firstName
+      - lastName
+      - locale
+      title: UserI18n
+      x-stoplight:
+        id: 871f6591b945e
+    UserGroupBelonging:
+      properties:
+        group:
+          $ref: '#/components/schemas/Group'
+        displayName:
+          example: カレッジライフ分科会 (22.04~)
+        from:
+          format: date
+        to:
+          format: date
+      required:
+      - displayName
+      - group
+      title: UserGroupBelonging
+      x-stoplight:
+        id: mbwu85j19fka0
+    UserSocialLink:
+      properties:
+        brand:
+          $ref: '#/components/schemas/SocialBrand'
+        username:
+          example: chiji1108
+      required:
+      - brand
+      - username
+      title: UserSocialLink
+      x-stoplight:
+        id: 0f1pz4ffn9owr
+    SocialBrand:
+      properties:
+        id:
+          description: Airtable's Record ID
+        name:
+          example: twitter
+        svgIconUrl:
+          format: uri
+        urlPrefix:
+          example: https://twitter.com/
+          format: uri
+        formPrefix:
+          example: '@'
+      required:
+      - id
+      - name
+      title: SocialBrand
+      x-stoplight:
+        id: x5aug333lhdcu
+    Group:
+      description: "`Committee`, `Club`"
+      example:
+        createdAt: ""
+        archivedAt: ""
+        photoUrls: ""
+        emoji: 📚
+        displayName: ""
+        slackChannel: '#310_coco_collegelife'
+        description: ""
+        id: ""
+        type: ""
+        title: カレッジライフ分科会
+      properties:
+        id:
+          description: Airtable's Record ID
+        type:
+          enum:
+          - committee
+          - club
+          - project
+        displayName:
+          default: カレッジライフ分科会
+        createdAt:
+          format: date
+        archivedAt:
+          format: date
+        emoji:
+          example: 📚
+        title:
+          example: カレッジライフ分科会
+        description:
+          description: Markdown
+        slackChannel:
+          example: '#310_coco_collegelife'
+        photoUrls:
+          items:
+            format: uri
+      required:
+      - displayName
+      - id
+      - type
+      title: Group
+      x-stoplight:
+        id: i4tun9gkx8vpc
+    Generation:
+      description: "`Program`, `House/Home`"
+      example:
+        photoUrls: ""
+        displayName: RP2期生
+        coverImageUrl: ""
+        description: ""
+        from: ""
+        id: ""
+        to: ""
+        type: ""
+        title: Residential Program 2期生
+      properties:
+        id:
+          description: Airtable's Record ID
+        type:
+          enum:
+          - program
+          - house
+        displayName:
+          example: RP2期生
+        from:
+          format: date
+        to:
+          format: date
+        coverImageUrl:
+          format: uri
+        title:
+          example: Residential Program 2期生
+        description:
+          description: Markdown
+        photoUrls:
+          items:
+            format: uri
+      required:
+      - displayName
+      - id
+      - type
+      title: Generation
+      x-stoplight:
+        id: rd01g8hw4cdca
+    post_login_request:
+      properties:
+        firebaseIdToken:
+          description: |
+            取得方法は[こちら](https://firebase.google.com/docs/auth/admin/verify-id-tokens#retrieve_id_tokens_on_clients)
+      required:
+      - firebaseIdToken
+    post_login_200_response:
+      example:
+        accessToken: ""
+        user:
+          birthday: ""
+          selfIntroductionSlideUrl: ""
+          socialLinks: ""
+          role: ""
+          roomNumber: ""
+          photoUrls: ""
+          lastModifiedAt: ""
+          committees: ""
+          bio: ""
+          postNumber: ""
+          i18n: ""
+          pronoun: ""
+          imageUrl: ""
+          hideAge: ""
+          houses: ""
+          clubs: ""
+          id: ""
+          programs: ""
+          position: ""
+          email: hoge@hlab.college
+      properties:
+        accessToken: {}
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+      - accessToken
+    put_users_request:
+      properties:
+        i18n:
+          items:
+            $ref: '#/components/schemas/UserI18n'
+        imageUrl:
+          format: uri
+        pronoun:
+          enum:
+          - SHE_HER
+          - HE_HIM
+          - THEY_THEM
+        birthday:
+          format: date
+        hideAge:
+          default: false
+        socialLinks:
+          items:
+            properties:
+              brandId:
+                description: Airtable's Social Brand Record ID
+              username: {}
+            required:
+            - brandId
+            - username
+        roomNumber:
+          maximum: 599
+          minimum: 100
+        postNumber:
+          maximum: 599
+          minimum: 100
+        selfIntroductionSlideUrl:
+          format: uri
+        programs:
+          items:
+            properties:
+              generationId:
+                description: Airtable's Generation Record ID
+            required:
+            - generationId
+        houses:
+          items:
+            properties:
+              generationId:
+                description: Airtable's Generation Record ID
+            required:
+            - generationId
+        committees:
+          items:
+            properties:
+              groupId:
+                description: Airtable's Group Record ID
+              from:
+                format: date
+              to:
+                format: date
+            required:
+            - groupId
+        clubs:
+          items:
+            properties:
+              groupId:
+                description: Airtable's Group Record ID
+              from:
+                format: date
+              to:
+                format: date
+            required:
+            - groupId
+        position:
+          description: 肩書き
+        bio:
+          description: Markdown
+        photoUrls:
+          items:
+            format: uri
+  securitySchemes:
+    accessToken:
+      description: |-
+        `Authrization: Bearer <accessToken>`
+
+        `accessToken`は`/login`で取得する。
+      scheme: bearer
+      type: http
+x-stoplight:
+  id: h57ut1i2gjak8

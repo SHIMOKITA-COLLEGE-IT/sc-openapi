@@ -1,0 +1,16 @@
+.openapi-generator-ignore
+apis/DefaultApi.ts
+apis/index.ts
+index.ts
+models/Generation.ts
+models/Group.ts
+models/PostLogin200Response.ts
+models/PostLoginRequest.ts
+models/PutUsersRequest.ts
+models/SocialBrand.ts
+models/User.ts
+models/UserGroupBelonging.ts
+models/UserI18n.ts
+models/UserSocialLink.ts
+models/index.ts
+runtime.ts
