@@ -1,0 +1,1189 @@
+openapi: 3.0.0
+info:
+  contact: {}
+  title: main
+  version: "1.0"
+servers:
+- description: Mock Server
+  url: https://stoplight.io/mocks/college-app/college-app/406762
+paths:
+  /login:
+    post:
+      deprecated: false
+      description: |
+        ## 概要
+        accessTokenを取得するためのエンドポイント。
+
+        初期登録フォーム未回答の場合、User情報を取得する。
+
+        ## レスポンスによるクライアント側の分岐
+
+        - 200
+          - レスポンスにuserがある
+            - 初期登録フォームに遷移、default値にuserを使用
+          - レスポンスにuserがない
+            - Homeに遷移
+        - 401
+          - 「このエラーが出たら運営に報告してね」エラーページに遷移
+        - 403
+          - 「このアカウントは無効化されてるよ」エラーページに遷移
+        - 404
+          - 「まだ運営側でデータ登録が完了していないよ」エラーページに遷移
+      operationId: post-login
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        description: ""
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: OK
+        "401":
+          content: {}
+          description: 無効なfirebaseIdToken
+        "403":
+          content: {}
+          description: Disabledになっている、つまりBANされているアカウント
+        "404":
+          content: {}
+          description: |-
+            Airtable上にデータが存在しません
+
+            先にAirtableでEmailだけでも登録してください
+      summary: Login
+  /users:
+    get:
+      deprecated: false
+      description: 全てのユーザーを取得する
+      operationId: get-users
+      parameters: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: ""
+                items:
+                  $ref: '#/components/schemas/User'
+                type: array
+          description: OK
+      security:
+      - accessToken: []
+      summary: Get Users
+    put:
+      deprecated: false
+      description: Airtable上の自分のUser情報をアップデートする
+      operationId: put-users
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+        description: ""
+        required: false
+      responses:
+        "200":
+          content: {}
+          description: OK
+      security:
+      - accessToken: []
+      summary: Update Me
+  /users/search:
+    get:
+      deprecated: false
+      description: |-
+        ## TODO
+
+        - [ ] フィルタリング
+        - [ ] ページネーション
+      operationId: get-users-search
+      parameters:
+      - description: 検索ワード
+        explode: true
+        in: query
+        name: query
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: ""
+                items:
+                  $ref: '#/components/schemas/User'
+                type: array
+          description: OK
+      security:
+      - accessToken: []
+      summary: Search Users
+  /users/{recordId}:
+    get:
+      deprecated: false
+      description: 指定のuserを取得
+      operationId: get-users-recordId
+      parameters:
+      - description: ""
+        explode: false
+        in: path
+        name: recordId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: OK
+        "404":
+          description: Not Found
+      security:
+      - accessToken: []
+      summary: Get User
+  /generations:
+    get:
+      deprecated: false
+      description: 指定したtypeの`Generation`を全て取得する
+      operationId: get-generations
+      parameters:
+      - explode: true
+        in: query
+        name: type
+        required: true
+        schema:
+          enum:
+          - program
+          - house
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: ""
+                items:
+                  $ref: '#/components/schemas/Generation'
+                type: array
+          description: OK
+      security:
+      - accessToken: []
+      summary: Get Generations
+  /generations/{recordId}:
+    get:
+      deprecated: false
+      description: 指定のgenerationを取得
+      operationId: get-generations-recordId
+      parameters:
+      - description: ""
+        explode: false
+        in: path
+        name: recordId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Generation'
+          description: OK
+        "404":
+          description: Not Found
+      security:
+      - accessToken: []
+      summary: Get Generation
+  /groups:
+    get:
+      deprecated: false
+      description: 指定したtypeの`Group`を全て取得する
+      operationId: get-groups
+      parameters:
+      - explode: true
+        in: query
+        name: type
+        required: true
+        schema:
+          enum:
+          - committee
+          - club
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: ""
+                items:
+                  $ref: '#/components/schemas/Group'
+                type: array
+          description: OK
+      security:
+      - accessToken: []
+      summary: Get Groups
+  /groups/{recordId}:
+    get:
+      deprecated: false
+      description: 指定のGroupを取得
+      operationId: get-groups-recordId
+      parameters:
+      - description: ""
+        explode: false
+        in: path
+        name: recordId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+          description: OK
+        "404":
+          description: Not Found
+      security:
+      - accessToken: []
+      summary: Get Group
+  /social-brands:
+    get:
+      description: Social Brandを全て取得する
+      operationId: get-social-brands
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SocialBrand'
+                type: array
+          description: OK
+      security:
+      - accessToken: []
+      summary: Get SocialBrands
+      tags: []
+components:
+  schemas:
+    User:
+      example:
+        birthday: 2000-01-23
+        selfIntroductionSlideUrl: https://openapi-generator.tech
+        socialLinks:
+        - brand:
+            formPrefix: '@'
+            urlPrefix: https://twitter.com/
+            name: twitter
+            svgIconUrl: https://openapi-generator.tech
+            id: id
+          username: chiji1108
+        - brand:
+            formPrefix: '@'
+            urlPrefix: https://twitter.com/
+            name: twitter
+            svgIconUrl: https://openapi-generator.tech
+            id: id
+          username: chiji1108
+        role: null
+        roomNumber: 139.96132670400448
+        photoUrls:
+        - https://openapi-generator.tech
+        - https://openapi-generator.tech
+        lastModifiedAt: 2000-01-23
+        committees:
+        - displayName: カレッジライフ分科会 (22.04~)
+          from: 2000-01-23
+          to: 2000-01-23
+          group:
+            createdAt: 2000-01-23
+            archivedAt: 2000-01-23
+            photoUrls:
+            - https://openapi-generator.tech
+            - https://openapi-generator.tech
+            emoji: 📚
+            displayName: displayName
+            slackChannel: '#310_coco_collegelife'
+            description: description
+            id: id
+            type: null
+            title: カレッジライフ分科会
+        - displayName: カレッジライフ分科会 (22.04~)
+          from: 2000-01-23
+          to: 2000-01-23
+          group:
+            createdAt: 2000-01-23
+            archivedAt: 2000-01-23
+            photoUrls:
+            - https://openapi-generator.tech
+            - https://openapi-generator.tech
+            emoji: 📚
+            displayName: displayName
+            slackChannel: '#310_coco_collegelife'
+            description: description
+            id: id
+            type: null
+            title: カレッジライフ分科会
+        bio: bio
+        postNumber: 400.7700635352131
+        i18n:
+        - firstName: firstName
+          lastName: lastName
+          phoneticLastName: phoneticLastName
+          nickName: nickName
+          phoneticMiddleName: phoneticMiddleName
+          prefix: prefix
+          maidenName: maidenName
+          middleName: middleName
+          locale: null
+          suffix: suffix
+          phoneticFirstName: phoneticFirstName
+        - firstName: firstName
+          lastName: lastName
+          phoneticLastName: phoneticLastName
+          nickName: nickName
+          phoneticMiddleName: phoneticMiddleName
+          prefix: prefix
+          maidenName: maidenName
+          middleName: middleName
+          locale: null
+          suffix: suffix
+          phoneticFirstName: phoneticFirstName
+        pronoun: null
+        imageUrl: https://openapi-generator.tech
+        hideAge: false
+        houses:
+        - photoUrls:
+          - https://openapi-generator.tech
+          - https://openapi-generator.tech
+          displayName: RP2期生
+          coverImageUrl: https://openapi-generator.tech
+          description: description
+          from: 2000-01-23
+          id: id
+          to: 2000-01-23
+          type: null
+          title: Residential Program 2期生
+        - photoUrls:
+          - https://openapi-generator.tech
+          - https://openapi-generator.tech
+          displayName: RP2期生
+          coverImageUrl: https://openapi-generator.tech
+          description: description
+          from: 2000-01-23
+          id: id
+          to: 2000-01-23
+          type: null
+          title: Residential Program 2期生
+        clubs:
+        - displayName: カレッジライフ分科会 (22.04~)
+          from: 2000-01-23
+          to: 2000-01-23
+          group:
+            createdAt: 2000-01-23
+            archivedAt: 2000-01-23
+            photoUrls:
+            - https://openapi-generator.tech
+            - https://openapi-generator.tech
+            emoji: 📚
+            displayName: displayName
+            slackChannel: '#310_coco_collegelife'
+            description: description
+            id: id
+            type: null
+            title: カレッジライフ分科会
+        - displayName: カレッジライフ分科会 (22.04~)
+          from: 2000-01-23
+          to: 2000-01-23
+          group:
+            createdAt: 2000-01-23
+            archivedAt: 2000-01-23
+            photoUrls:
+            - https://openapi-generator.tech
+            - https://openapi-generator.tech
+            emoji: 📚
+            displayName: displayName
+            slackChannel: '#310_coco_collegelife'
+            description: description
+            id: id
+            type: null
+            title: カレッジライフ分科会
+        id: id
+        programs:
+        - photoUrls:
+          - https://openapi-generator.tech
+          - https://openapi-generator.tech
+          displayName: RP2期生
+          coverImageUrl: https://openapi-generator.tech
+          description: description
+          from: 2000-01-23
+          id: id
+          to: 2000-01-23
+          type: null
+          title: Residential Program 2期生
+        - photoUrls:
+          - https://openapi-generator.tech
+          - https://openapi-generator.tech
+          displayName: RP2期生
+          coverImageUrl: https://openapi-generator.tech
+          description: description
+          from: 2000-01-23
+          id: id
+          to: 2000-01-23
+          type: null
+          title: Residential Program 2期生
+        position: position
+        email: hoge@hlab.college
+      properties:
+        id:
+          description: Airtable's Record ID
+          type: string
+        email:
+          example: hoge@hlab.college
+          format: email
+          type: string
+        role:
+          $ref: '#/components/schemas/Role'
+        i18n:
+          items:
+            $ref: '#/components/schemas/UserI18n'
+          type: array
+        imageUrl:
+          format: uri
+          type: string
+        pronoun:
+          $ref: '#/components/schemas/Pronoun'
+        birthday:
+          format: date
+          type: string
+        hideAge:
+          default: false
+          type: boolean
+        socialLinks:
+          items:
+            $ref: '#/components/schemas/UserSocialLink'
+          type: array
+        roomNumber:
+          maximum: 599
+          minimum: 100
+          type: number
+        postNumber:
+          maximum: 599
+          minimum: 100
+          type: number
+        selfIntroductionSlideUrl:
+          format: uri
+          type: string
+        programs:
+          items:
+            $ref: '#/components/schemas/Generation'
+          type: array
+        houses:
+          items:
+            $ref: '#/components/schemas/Generation'
+          type: array
+        committees:
+          items:
+            $ref: '#/components/schemas/UserGroupBelonging'
+          type: array
+        clubs:
+          items:
+            $ref: '#/components/schemas/UserGroupBelonging'
+          type: array
+        position:
+          description: 肩書き
+          type: string
+        bio:
+          description: Markdown
+          type: string
+        photoUrls:
+          items:
+            format: uri
+            type: string
+          type: array
+        lastModifiedAt:
+          format: date
+          type: string
+      required:
+      - email
+      - i18n
+      - id
+      - role
+      title: User
+      type: object
+    UserI18n:
+      example:
+        firstName: firstName
+        lastName: lastName
+        phoneticLastName: phoneticLastName
+        nickName: nickName
+        phoneticMiddleName: phoneticMiddleName
+        prefix: prefix
+        maidenName: maidenName
+        middleName: middleName
+        locale: null
+        suffix: suffix
+        phoneticFirstName: phoneticFirstName
+      properties:
+        locale:
+          $ref: '#/components/schemas/Locale'
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phoneticFirstName:
+          type: string
+        phoneticLastName:
+          type: string
+        nickName:
+          type: string
+        middleName:
+          type: string
+        phoneticMiddleName:
+          type: string
+        maidenName:
+          type: string
+        prefix:
+          type: string
+        suffix:
+          type: string
+      required:
+      - firstName
+      - lastName
+      - locale
+      title: UserI18n
+      type: object
+    UserGroupBelonging:
+      example:
+        displayName: カレッジライフ分科会 (22.04~)
+        from: 2000-01-23
+        to: 2000-01-23
+        group:
+          createdAt: 2000-01-23
+          archivedAt: 2000-01-23
+          photoUrls:
+          - https://openapi-generator.tech
+          - https://openapi-generator.tech
+          emoji: 📚
+          displayName: displayName
+          slackChannel: '#310_coco_collegelife'
+          description: description
+          id: id
+          type: null
+          title: カレッジライフ分科会
+      properties:
+        group:
+          $ref: '#/components/schemas/Group'
+        displayName:
+          example: カレッジライフ分科会 (22.04~)
+          type: string
+        from:
+          format: date
+          type: string
+        to:
+          format: date
+          type: string
+      required:
+      - displayName
+      - group
+      title: UserGroupBelonging
+      type: object
+    UserSocialLink:
+      example:
+        brand:
+          formPrefix: '@'
+          urlPrefix: https://twitter.com/
+          name: twitter
+          svgIconUrl: https://openapi-generator.tech
+          id: id
+        username: chiji1108
+      properties:
+        brand:
+          $ref: '#/components/schemas/SocialBrand'
+        username:
+          example: chiji1108
+          type: string
+      required:
+      - brand
+      - username
+      title: UserSocialLink
+      type: object
+    SocialBrand:
+      example:
+        formPrefix: '@'
+        urlPrefix: https://twitter.com/
+        name: twitter
+        svgIconUrl: https://openapi-generator.tech
+        id: id
+      properties:
+        id:
+          description: Airtable's Record ID
+          type: string
+        name:
+          example: twitter
+          type: string
+        svgIconUrl:
+          format: uri
+          type: string
+        urlPrefix:
+          example: https://twitter.com/
+          format: uri
+          type: string
+        formPrefix:
+          example: '@'
+          type: string
+      required:
+      - id
+      - name
+      title: SocialBrand
+      type: object
+    Group:
+      description: "`Committee`, `Club`のモデル"
+      example:
+        createdAt: 2000-01-23
+        archivedAt: 2000-01-23
+        photoUrls:
+        - https://openapi-generator.tech
+        - https://openapi-generator.tech
+        emoji: 📚
+        displayName: displayName
+        slackChannel: '#310_coco_collegelife'
+        description: description
+        id: id
+        type: null
+        title: カレッジライフ分科会
+      properties:
+        id:
+          description: Airtable's Record ID
+          type: string
+        type:
+          $ref: '#/components/schemas/GroupType'
+        displayName:
+          type: string
+        createdAt:
+          format: date
+          type: string
+        archivedAt:
+          format: date
+          type: string
+        emoji:
+          example: 📚
+          type: string
+        title:
+          example: カレッジライフ分科会
+          type: string
+        description:
+          description: Markdown
+          type: string
+        slackChannel:
+          example: '#310_coco_collegelife'
+          type: string
+        photoUrls:
+          items:
+            format: uri
+            type: string
+          type: array
+      required:
+      - displayName
+      - id
+      - type
+      title: Group
+      type: object
+    Generation:
+      description: "`Program`, `House`のモデル"
+      example:
+        photoUrls:
+        - https://openapi-generator.tech
+        - https://openapi-generator.tech
+        displayName: RP2期生
+        coverImageUrl: https://openapi-generator.tech
+        description: description
+        from: 2000-01-23
+        id: id
+        to: 2000-01-23
+        type: null
+        title: Residential Program 2期生
+      properties:
+        id:
+          description: Airtable's Record ID
+          type: string
+        type:
+          $ref: '#/components/schemas/GenerationType'
+        displayName:
+          example: RP2期生
+          type: string
+        from:
+          format: date
+          type: string
+        to:
+          format: date
+          type: string
+        coverImageUrl:
+          format: uri
+          type: string
+        title:
+          example: Residential Program 2期生
+          type: string
+        description:
+          description: Markdown
+          type: string
+        photoUrls:
+          items:
+            format: uri
+            type: string
+          type: array
+      required:
+      - displayName
+      - id
+      - type
+      title: Generation
+      type: object
+    Locale:
+      description: Enum
+      enum:
+      - ja
+      - en
+      title: Locale
+      type: string
+      x-stoplight:
+        id: b45329b541c5a
+    Pronoun:
+      description: Enum
+      enum:
+      - SHE_HER
+      - HE_HIM
+      - THEY_THEM
+      title: Pronoun
+      type: string
+    Role:
+      description: Enum
+      enum:
+      - resident
+      - alumni
+      - staff
+      title: Role
+      type: string
+    GroupType:
+      description: Enum
+      enum:
+      - committee
+      - club
+      - project
+      title: GroupType
+      type: string
+      x-stoplight:
+        id: 2dwof9ol7jw5s
+    GenerationType:
+      description: Enum
+      enum:
+      - program
+      - house
+      title: GenerationType
+      type: string
+      x-stoplight:
+        id: guoy130cad7y7
+    UpdateUserRequest:
+      description: ""
+      example:
+        birthday: 2000-01-23
+        selfIntroductionSlideUrl: https://openapi-generator.tech
+        socialLinks:
+        - brandId: brandId
+          username: username
+        - brandId: brandId
+          username: username
+        roomNumber: 139.96132670400448
+        photoUrls:
+        - https://openapi-generator.tech
+        - https://openapi-generator.tech
+        lastModifiedAt: 2000-01-23
+        generations:
+        - generations
+        - generations
+        groups:
+        - groupId: groupId
+          from: 2000-01-23
+          to: 2000-01-23
+        - groupId: groupId
+          from: 2000-01-23
+          to: 2000-01-23
+        bio: bio
+        postNumber: 400.7700635352131
+        i18n:
+        - firstName: firstName
+          lastName: lastName
+          phoneticLastName: phoneticLastName
+          nickName: nickName
+          phoneticMiddleName: phoneticMiddleName
+          prefix: prefix
+          maidenName: maidenName
+          middleName: middleName
+          locale: null
+          suffix: suffix
+          phoneticFirstName: phoneticFirstName
+        - firstName: firstName
+          lastName: lastName
+          phoneticLastName: phoneticLastName
+          nickName: nickName
+          phoneticMiddleName: phoneticMiddleName
+          prefix: prefix
+          maidenName: maidenName
+          middleName: middleName
+          locale: null
+          suffix: suffix
+          phoneticFirstName: phoneticFirstName
+        pronoun: null
+        imageUrl: https://openapi-generator.tech
+        hideAge: false
+        position: position
+      properties:
+        i18n:
+          items:
+            $ref: '#/components/schemas/UpdateUserRequest_i18n_inner'
+          type: array
+        imageUrl:
+          format: uri
+          type: string
+        pronoun:
+          $ref: '#/components/schemas/Pronoun'
+        birthday:
+          format: date
+          type: string
+        hideAge:
+          default: false
+          type: boolean
+        socialLinks:
+          items:
+            $ref: '#/components/schemas/UpdateUserRequest_socialLinks_inner'
+          type: array
+        roomNumber:
+          maximum: 599
+          minimum: 100
+          type: number
+        postNumber:
+          maximum: 599
+          minimum: 100
+          type: number
+        selfIntroductionSlideUrl:
+          format: uri
+          type: string
+        generations:
+          description: Airtable's Record IDs
+          items:
+            type: string
+          type: array
+        groups:
+          items:
+            $ref: '#/components/schemas/UpdateUserRequest_groups_inner'
+          type: array
+        position:
+          description: 肩書き
+          type: string
+        bio:
+          description: Markdown
+          type: string
+        photoUrls:
+          items:
+            format: uri
+            type: string
+          type: array
+        lastModifiedAt:
+          format: date
+          type: string
+      title: UpdateUserRequest
+      type: object
+      x-stoplight:
+        id: u3favfr7srwr4
+    LoginResponse:
+      description: 初期登録フォーム未回答の場合、userも返す
+      example:
+        accessToken: accessToken
+        user:
+          birthday: 2000-01-23
+          selfIntroductionSlideUrl: https://openapi-generator.tech
+          socialLinks:
+          - brand:
+              formPrefix: '@'
+              urlPrefix: https://twitter.com/
+              name: twitter
+              svgIconUrl: https://openapi-generator.tech
+              id: id
+            username: chiji1108
+          - brand:
+              formPrefix: '@'
+              urlPrefix: https://twitter.com/
+              name: twitter
+              svgIconUrl: https://openapi-generator.tech
+              id: id
+            username: chiji1108
+          role: null
+          roomNumber: 139.96132670400448
+          photoUrls:
+          - https://openapi-generator.tech
+          - https://openapi-generator.tech
+          lastModifiedAt: 2000-01-23
+          committees:
+          - displayName: カレッジライフ分科会 (22.04~)
+            from: 2000-01-23
+            to: 2000-01-23
+            group:
+              createdAt: 2000-01-23
+              archivedAt: 2000-01-23
+              photoUrls:
+              - https://openapi-generator.tech
+              - https://openapi-generator.tech
+              emoji: 📚
+              displayName: displayName
+              slackChannel: '#310_coco_collegelife'
+              description: description
+              id: id
+              type: null
+              title: カレッジライフ分科会
+          - displayName: カレッジライフ分科会 (22.04~)
+            from: 2000-01-23
+            to: 2000-01-23
+            group:
+              createdAt: 2000-01-23
+              archivedAt: 2000-01-23
+              photoUrls:
+              - https://openapi-generator.tech
+              - https://openapi-generator.tech
+              emoji: 📚
+              displayName: displayName
+              slackChannel: '#310_coco_collegelife'
+              description: description
+              id: id
+              type: null
+              title: カレッジライフ分科会
+          bio: bio
+          postNumber: 400.7700635352131
+          i18n:
+          - firstName: firstName
+            lastName: lastName
+            phoneticLastName: phoneticLastName
+            nickName: nickName
+            phoneticMiddleName: phoneticMiddleName
+            prefix: prefix
+            maidenName: maidenName
+            middleName: middleName
+            locale: null
+            suffix: suffix
+            phoneticFirstName: phoneticFirstName
+          - firstName: firstName
+            lastName: lastName
+            phoneticLastName: phoneticLastName
+            nickName: nickName
+            phoneticMiddleName: phoneticMiddleName
+            prefix: prefix
+            maidenName: maidenName
+            middleName: middleName
+            locale: null
+            suffix: suffix
+            phoneticFirstName: phoneticFirstName
+          pronoun: null
+          imageUrl: https://openapi-generator.tech
+          hideAge: false
+          houses:
+          - photoUrls:
+            - https://openapi-generator.tech
+            - https://openapi-generator.tech
+            displayName: RP2期生
+            coverImageUrl: https://openapi-generator.tech
+            description: description
+            from: 2000-01-23
+            id: id
+            to: 2000-01-23
+            type: null
+            title: Residential Program 2期生
+          - photoUrls:
+            - https://openapi-generator.tech
+            - https://openapi-generator.tech
+            displayName: RP2期生
+            coverImageUrl: https://openapi-generator.tech
+            description: description
+            from: 2000-01-23
+            id: id
+            to: 2000-01-23
+            type: null
+            title: Residential Program 2期生
+          clubs:
+          - displayName: カレッジライフ分科会 (22.04~)
+            from: 2000-01-23
+            to: 2000-01-23
+            group:
+              createdAt: 2000-01-23
+              archivedAt: 2000-01-23
+              photoUrls:
+              - https://openapi-generator.tech
+              - https://openapi-generator.tech
+              emoji: 📚
+              displayName: displayName
+              slackChannel: '#310_coco_collegelife'
+              description: description
+              id: id
+              type: null
+              title: カレッジライフ分科会
+          - displayName: カレッジライフ分科会 (22.04~)
+            from: 2000-01-23
+            to: 2000-01-23
+            group:
+              createdAt: 2000-01-23
+              archivedAt: 2000-01-23
+              photoUrls:
+              - https://openapi-generator.tech
+              - https://openapi-generator.tech
+              emoji: 📚
+              displayName: displayName
+              slackChannel: '#310_coco_collegelife'
+              description: description
+              id: id
+              type: null
+              title: カレッジライフ分科会
+          id: id
+          programs:
+          - photoUrls:
+            - https://openapi-generator.tech
+            - https://openapi-generator.tech
+            displayName: RP2期生
+            coverImageUrl: https://openapi-generator.tech
+            description: description
+            from: 2000-01-23
+            id: id
+            to: 2000-01-23
+            type: null
+            title: Residential Program 2期生
+          - photoUrls:
+            - https://openapi-generator.tech
+            - https://openapi-generator.tech
+            displayName: RP2期生
+            coverImageUrl: https://openapi-generator.tech
+            description: description
+            from: 2000-01-23
+            id: id
+            to: 2000-01-23
+            type: null
+            title: Residential Program 2期生
+          position: position
+          email: hoge@hlab.college
+      properties:
+        accessToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+      - accessToken
+      title: LoginResponse
+      type: object
+      x-stoplight:
+        id: wirdxz0ka60a9
+    LoginRequest:
+      description: ""
+      example:
+        firebaseIdToken: firebaseIdToken
+      properties:
+        firebaseIdToken:
+          description: "取得方法は[こちら](https://firebase.google.com/docs/auth/admin/verify-id-tokens#retrieve_id_tokens_on_clients)"
+          type: string
+      required:
+      - firebaseIdToken
+      title: LoginRequest
+      type: object
+      x-stoplight:
+        id: bq3lg3312kxji
+    UpdateUserRequest_i18n_inner:
+      example:
+        firstName: firstName
+        lastName: lastName
+        phoneticLastName: phoneticLastName
+        nickName: nickName
+        phoneticMiddleName: phoneticMiddleName
+        prefix: prefix
+        maidenName: maidenName
+        middleName: middleName
+        locale: null
+        suffix: suffix
+        phoneticFirstName: phoneticFirstName
+      properties:
+        locale:
+          $ref: '#/components/schemas/Locale'
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phoneticFirstName:
+          type: string
+        phoneticLastName:
+          type: string
+        nickName:
+          type: string
+        middleName:
+          type: string
+        phoneticMiddleName:
+          type: string
+        maidenName:
+          type: string
+        prefix:
+          type: string
+        suffix:
+          type: string
+      required:
+      - locale
+      type: object
+    UpdateUserRequest_socialLinks_inner:
+      example:
+        brandId: brandId
+        username: username
+      properties:
+        brandId:
+          description: Airtable's Record ID
+          type: string
+        username:
+          type: string
+      required:
+      - brandId
+      - username
+      type: object
+    UpdateUserRequest_groups_inner:
+      example:
+        groupId: groupId
+        from: 2000-01-23
+        to: 2000-01-23
+      properties:
+        groupId:
+          description: Airtable's Record ID
+          type: string
+        from:
+          format: date
+          type: string
+        to:
+          format: date
+          type: string
+      required:
+      - groupId
+      type: object
+  securitySchemes:
+    accessToken:
+      description: |-
+        `Authrization: Bearer <accessToken>`
+
+        `accessToken`は`/login`で取得する。
+      scheme: bearer
+      type: http
+x-stoplight:
+  id: i5yczhey972ww
